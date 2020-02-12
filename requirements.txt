@@ -1,0 +1,11 @@
+django_phonenumber_field==4.0.0
+Django==3.0.2
+qrcode==6.1
+django_mysql==3.3.0
+django_filter==2.2.0
+pytz==2019.3
+pypinyin==0.37.0
+requests==2.22.0
+django_filters==0.2.1
+djangorestframework==3.11.0
+python_dateutil==2.8.1

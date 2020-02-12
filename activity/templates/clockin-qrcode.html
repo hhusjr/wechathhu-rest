@@ -1,0 +1,5 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>{{activity.name}}{{label}}二维码</h1>
+<img src="{{qrcode_url}}" />
+{% endblock %}
