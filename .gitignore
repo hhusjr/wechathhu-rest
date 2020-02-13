@@ -260,3 +260,4 @@ Temporary Items
 # configs
 settings.py
 apps.py
+wechat.py
