@@ -16,10 +16,10 @@ class UserMeta(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='meta')
     department = models.CharField(max_length=255, blank=True, null=True)
     post = models.CharField(max_length=255, blank=True, null=True)
-    qq = models.PositiveIntegerField(blank=True, null=True)
+    qq = models.CharField(max_length=32, blank=True, null=True)
     wechat = models.CharField(max_length=255, blank=True, null=True)
-    tel = models.PositiveIntegerField(blank=True, null=True)
-    phone = models.PositiveIntegerField(blank=True, null=True)
+    tel = models.CharField(max_length=32, blank=True, null=True)
+    phone = models.CharField(max_length=32, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
 
 class Contact(models.Model):
