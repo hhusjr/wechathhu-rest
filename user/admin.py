@@ -1,8 +1,9 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 from reservation.models import Reservation
 from user.models import User, Contact, UserMeta
 from import_export import resources
-from import_export.admin import ImportExportModelAdmin
+from import_export.admin import ImportExportMixin
 from import_export.fields import Field
 from django.db.models.functions import Concat
 
@@ -33,7 +34,7 @@ class UserResource(resources.ModelResource):
             'email'
         )
 
-class UserAdmin(ImportExportModelAdmin):
+class CustomUserAdmin(ImportExportMixin, UserAdmin):
     resource_class = UserResource
     list_display = ('username', 'fullname', 'email', 'meta__department', 'meta__post', 'meta__phone')
     search_fields = ('username', 'fullname')
@@ -55,10 +56,10 @@ class UserAdmin(ImportExportModelAdmin):
 
     inlines = (UserMetaInline, ContactInline)
 
-UserAdmin.fullname.short_description = '真实姓名'
-UserAdmin.meta__department.short_description = '部门'
-UserAdmin.meta__post.short_description = '职位'
-UserAdmin.meta__phone.short_description = '手机号'
+CustomUserAdmin.fullname.short_description = '真实姓名'
+CustomUserAdmin.meta__department.short_description = '部门'
+CustomUserAdmin.meta__post.short_description = '职位'
+CustomUserAdmin.meta__phone.short_description = '手机号'
 
 class ContactAdmin(admin.ModelAdmin):
     list_display = ('user', 'friend_user')
@@ -67,5 +68,5 @@ class ContactAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).annotate(fullname=Concat('user__last_name', 'user__first_name'))
 
-admin.site.register(User, UserAdmin)
+admin.site.register(User, CustomUserAdmin)
 admin.site.register(Contact, ContactAdmin)
