@@ -9,7 +9,7 @@ class CustomUserManager(UserManager):
         return super().get_queryset().annotate(fullname=Concat('last_name', 'first_name'))
 
 class User(AbstractUser):
-    email = models.EmailField(_('email address'), unique=True, null=True, blank=False)
+    email = models.EmailField(_('email address'), null=True, blank=True)
     last_name = models.CharField(_('last name'), max_length=150, blank=False)
     first_name = models.CharField(_('first name'), max_length=30, blank=False)
     
@@ -31,7 +31,7 @@ class User(AbstractUser):
     class Meta:
         verbose_name = '教师用户'
         verbose_name_plural = '教师用户'
-        ordering = ('username', )
+        ordering = ('username', 'id')
 
 class UserMeta(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='meta', verbose_name='用户')

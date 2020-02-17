@@ -12,6 +12,7 @@ import json
 from activity.apps import ActivityConfig
 from django.utils import timezone
 from datetime import timedelta
+import binascii
 
 class ActivityViewset(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, )
@@ -95,7 +96,7 @@ class ClockinViewset(viewsets.ViewSet):
                 'label': clockin_meta.label,
                 'activity_name': clockin_meta.activity.name
             })
-        except (KeyError, TypeError, json.JSONDecodeError, ClockinMeta.DoesNotExist):
+        except (Activity.DoesNotExist, UnicodeDecodeError, binascii.Error, KeyError, TypeError, json.JSONDecodeError, ClockinMeta.DoesNotExist):
             return Response({
                 'detail': '打卡二维码异常或已过期，请重试。'
             }, status=status.HTTP_400_BAD_REQUEST)

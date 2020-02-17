@@ -37,12 +37,17 @@ class ActivityFormMetasForm(forms.ModelForm):
         model = Activity
         fields = '__all__'
 
+class ClockinMetaInlineAdmin(admin.StackedInline):
+    model = ClockinMeta
+    exclude = ('generated_key', )
+
 class ActivityAdmin(admin.ModelAdmin):
     form = ActivityFormMetasForm
     list_display = ('name', 'created', 'open_for_enrollment', 'participants_total_limit', 'location', 'time_start', 'time_end')
     search_fields = ('name', 'location')
     list_filter = ('time_start', )
     list_editable = ('open_for_enrollment', )
+    inlines = (ClockinMetaInlineAdmin, )
 
 admin.site.register(Activity, ActivityAdmin)
 
@@ -334,5 +339,6 @@ class ClockinRecordAdmin(admin.ModelAdmin):
     list_display = ('clockin_meta', 'user', 'created')
     raw_id_fields = ('clockin_meta', )
     autocomplete_fields = ('user', )
+    list_filter = ('clockin_meta__activity', 'user')
 
 admin.site.register(ClockinRecord, ClockinRecordAdmin)

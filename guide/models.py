@@ -16,6 +16,9 @@ class Guide(models.Model):
     file = models.FileField(upload_to='guides', verbose_name='指南文件')
     created = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     
+    def __str__(self):
+        return self.category.name + '-' + self.name
+
     class Meta:
         ordering = ('-created', '-id')
         verbose_name = '指南文件'

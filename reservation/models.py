@@ -7,8 +7,8 @@ class Meetingroom(models.Model):
     name = models.CharField(max_length=32, verbose_name='会议室名称')
     location = models.CharField(max_length=128, verbose_name='会议室位置')
     seats_count = models.IntegerField(verbose_name='会议室座位数')
-    label = models.CharField(max_length=32, verbose_name='会议室标签')
-    description = models.TextField(verbose_name='会议室简介')
+    label = models.CharField(max_length=32, verbose_name='会议室标签', blank=True)
+    description = models.TextField(verbose_name='会议室简介', blank=True)
 
     def __str__(self):
         return self.name

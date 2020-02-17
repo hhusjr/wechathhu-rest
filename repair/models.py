@@ -13,10 +13,15 @@ class FaultCategory(models.Model):
 
 class NotificationUser(models.Model):
     name = models.CharField(max_length=255, verbose_name='被提醒人姓名')
-    email = models.EmailField(unique=True, verbose_name='被提醒人邮箱')
+    email = models.EmailField(verbose_name='被提醒人邮箱')
     category = models.ForeignKey(FaultCategory, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='故障分类')
 
+    def __str__(self):
+        return str(self.category) + ' ' + self.name
+
     class Meta:
+        unique_together = ('name', 'email', 'category')
+
         verbose_name = '邮件提醒'
         verbose_name_plural = '邮件提醒'
 

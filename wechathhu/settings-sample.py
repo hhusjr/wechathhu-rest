@@ -161,6 +161,7 @@ REST_FRAMEWORK = {
 # Email backend
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = False
+EMAIL_USE_SSL = False
 EMAIL_HOST = ''
 EMAIL_PORT = 25
 EMAIL_HOST_USER = ''
