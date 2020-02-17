@@ -4,6 +4,7 @@ from user.models import User
 from rest_framework.validators import UniqueTogetherValidator
 from django.utils import timezone
 import json
+from django.db import transaction
 
 class ActivitySerializer(serializers.ModelSerializer):
     enrollment_count = serializers.ReadOnlyField()
@@ -143,6 +144,21 @@ class EnrollmentSerializer(serializers.ModelSerializer):
 
         data['participating_metas'] = json.dumps(attrs)
         return data
+
+    def create(self, validated_data):
+        with transaction.atomic():
+            activity = Activity.objects.select_for_update().get(id=validated_data['activity'].id)
+
+            if activity.participants_total_limit is not None \
+                and Enrollment.objects.filter(activity=activity).count() >= activity.participants_total_limit:
+                transaction.set_rollback(True)
+                raise serializers.ValidationError({
+                    'non_field_errors': ['报名人数已经达到上限，无法继续报名。']
+                })
+            
+            enrollment = Enrollment.objects.create(**validated_data)
+        
+        return enrollment
 
 class ClockinSerializer(serializers.ModelSerializer):
     is_clockin = serializers.SerializerMethodField()

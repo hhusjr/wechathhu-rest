@@ -76,11 +76,10 @@ class ClockinViewset(viewsets.ViewSet):
                     'detail': '打卡时间不在指定的时间范围内。'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            if clockin_meta.need_enrollment:
-                if not Enrollment.objects.filter(activity=activity, user=request.user).count():
-                    return Response({
-                        'detail': '您尚未报名该活动，无法进行本次打卡。'
-                    }, status=status.HTTP_400_BAD_REQUEST)
+            if not Enrollment.objects.filter(activity=activity, user=request.user).count():
+                return Response({
+                    'detail': '您尚未报名该活动，无法进行本次打卡。'
+                }, status=status.HTTP_400_BAD_REQUEST)
 
             record, created = ClockinRecord.objects.get_or_create(
                 user=request.user,

@@ -48,7 +48,7 @@ class UserChangePasswordSerializer(serializers.ModelSerializer):
 
 class UserMetaSerializer(serializers.ModelSerializer):
     user_meta = serializers.SerializerMethodField(read_only=True)
-    fullname = serializers.CharField(read_only=True)
+    fullname = serializers.SerializerMethodField(read_only=True)
     alpha = serializers.SerializerMethodField(read_only=True)
     is_friend = serializers.SerializerMethodField(read_only=True)
 
@@ -69,6 +69,9 @@ class UserMetaSerializer(serializers.ModelSerializer):
             'is_friend'
         )
         read_only_fields = ('user', 'user_meta', 'fullname', 'alpha', 'is_friend')
+
+    def get_fullname(self, instance):
+        return instance.user.get_fullname()
 
     def get_is_friend(self, instance):
         return Contact.objects.filter(user=self.context['request'].user, friend_user=instance.user).count() > 0

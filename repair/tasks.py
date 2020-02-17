@@ -5,7 +5,7 @@ from repair.apps import RepairConfig
 from wechathhu.settings import DEFAULT_FROM_EMAIL
 from django.db.models import Q
 
-@shared_task
+@shared_task(queue='multi')
 def send_notification_email(id):
     repair_request = RepairRequest.objects.get(id=id)
     notifications = NotificationUser.objects.filter(Q(category=repair_request.category) | Q(category__isnull=True)).all()

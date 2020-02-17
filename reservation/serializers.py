@@ -2,6 +2,9 @@ from rest_framework import serializers
 from reservation.models import Reservation, Meetingroom
 from django.utils import timezone
 from datetime import timedelta
+from reservation.tasks import do_reserve
+from reservation.apps import ReservationConfig
+from celery.exceptions import TimeoutError, TimeLimitExceeded
 
 class MeetingroomSerializer(serializers.ModelSerializer):
     class Meta:
@@ -41,12 +44,7 @@ class ReservationSerializer(serializers.ModelSerializer):
         delta = reserve_to - reserve_from
         if delta < 2 * unit or delta > 36 * unit:
             raise serializers.ValidationError('预约会议时间不得少于10分钟，不得超过3小时。')
-        
-        reservations = data['meetingroom_object'].reservations.filter(reserve_to__gt=reserve_from, reserve_from__lt=reserve_to).all()
-        for reservation in reservations:
-            if max(reservation.reserve_from, reserve_from) < min(reservation.reserve_to, reserve_to):
-                raise serializers.ValidationError('该时间段与该会议室的某些会议时间段存在冲突，请重新选择会议室或时间段。')
-        
+            
         validated_data = {
             'reserve_from': reserve_from,
             'reserve_to': reserve_to,
@@ -55,3 +53,25 @@ class ReservationSerializer(serializers.ModelSerializer):
         }
 
         return validated_data
+
+    def create(self, validated_data):
+        task = do_reserve.delay(
+            reserve_from=validated_data['reserve_from'].isoformat(),
+            reserve_to=validated_data['reserve_to'].isoformat(),
+            description=validated_data['description'],
+            meetingroom_id=validated_data['meetingroom'].id,
+            user_id=validated_data['user'].id
+        )
+
+        try:
+            res = task.get(timeout=ReservationConfig.reserve_task_timeout)
+            if res['status'] == 'success':
+                return Reservation.objects.get(id=res['detail'])
+            elif res['status'] == 'fail':
+                raise serializers.ValidationError({
+                    'non_field_errors': [res['detail']]
+                })
+        except (TimeoutError, TimeLimitExceeded, TypeError, KeyError, ValueError):
+            raise serializers.ValidationError({
+                'non_field_errors': ['预约请求失败，请重试。']
+            })

@@ -1,0 +1,117 @@
+<div id="form-metas-edit">
+    <input type="hidden" name="{{ widget.name }}" v-model="formMetasCode" data-initial="{{ widget.value|default_if_none:'{}' }}" id="form-metas-code">
+    <el-button type="text" @click="dialogVisible = true">定制报名表单</el-button>
+    <el-dialog
+    title="定制报名表单"
+    width="70%"
+    :visible.sync="dialogVisible"
+    direction="ttb">
+        <el-row>
+            <el-col :span="12">
+                <el-container>
+                    <el-main>
+                        <el-collapse accordion v-model="activeNames">
+                            <el-collapse-item v-for="(field, name) in fields" :title="typeTranslation[field.type] + ' ' + name + ' ' + (field.attributes.required ? '必填' : '选填')" :name="name">
+                                <div style="margin-bottom: 12px;">
+                                    <ol v-if="field.type == 'radio' || field.type == 'checkbox'">
+                                        <li v-for="choice in field.attributes.choices">
+                                            {% templatetag openvariable %}choice.name{% templatetag closevariable %}
+                                            <el-tag size="mini" type="success" v-if="choice.default">默认</el-tag>
+                                        </li>
+                                    </ol>
+                                    <p v-if="field.type == 'text' || field.type == 'number' || field.type == 'textarea'">默认文本：{% templatetag openvariable %}field.attributes.defaultText{% templatetag closevariable %}</p>
+                                </div>
+                                <el-form :inline="true">
+                                    <el-form-item>
+                                        <el-button @click="editField(name)" size="mini" type="info">编辑字段</el-button>
+                                    </el-form-item>
+                                    <el-form-item>
+                                        <el-popover
+                                        placement="top"
+                                        width="160"
+                                        v-model="deleteFieldConfirmShow[name]">
+                                            <p>确定删除该字段吗？</p>
+                                            <div style="text-align: right; margin: 0">
+                                                <el-button size="mini" type="text" @click="deleteFieldConfirmShow[name] = false">取消</el-button>
+                                                <el-button type="primary" size="mini" @click="deleteFieldConfirmShow[name] = false; deleteField(name);">确定</el-button>
+                                            </div>
+                                            <el-button slot="reference" type="danger" size="mini">删除字段</el-button>
+                                        </el-popover>
+                                    </el-form-item>
+                                </el-form>
+                            </el-collapse-item>
+                        </el-collapse>
+                        <div style="margin-top: 15px;">
+                            <el-button @click="newField" type="success">新增字段</el-button>
+                        </div>
+                        <el-divider></el-divider>
+                        <el-form :inline="true" label-width="80px">
+                            <el-form-item label="字段类别">
+                                <el-select v-model="type" placeholder="选择类别" @change="changeType">
+                                    <el-option
+                                    v-for="item in options"
+                                    :key="item.type"
+                                    :label="item.label"
+                                    :value="item.type">
+                                    </el-option>
+                                </el-select>
+                            </el-form-item>
+                        </el-form>
+                        <el-divider></el-divider>
+                        <el-form ref="changeField" :model="attributes" label-width="80px" v-if="type" size="mini">
+                            <el-form-item label="字段名称" prop="name" :rules="[
+                                { required: true, message: '请输入字段名称', trigger: 'blur' }
+                            ]">
+                                <el-input v-model="attributes.name" placeholder="该字段的名称，重复则覆盖"></el-input>
+                            </el-form-item>
+                            <el-form-item label="必填" prop="required">
+                                <el-checkbox v-model="attributes.required">是否必填</el-checkbox>
+                            </el-form-item>
+                            <el-form-item label="默认文本" prop="defaultText" v-if="type == 'text'">
+                                <el-input v-model="attributes.defaultText" placeholder="默认文本值"></el-input>
+                            </el-form-item>
+                            <el-form-item label="默认数字" prop="defaultText" v-if="type == 'number'">
+                                <el-input type="number" v-model="attributes.defaultText" placeholder="默认数字值"></el-input>
+                            </el-form-item>
+                            <el-form-item label="默认文本" prop="defaultText" v-if="type == 'textarea'">
+                                <el-input type="textarea" v-model="attributes.defaultText" autosize placeholder="默认文本值"></el-input>
+                            </el-form-item>
+                            <template v-if="type == 'radio' || type == 'checkbox'">
+                                <el-form-item v-for="(choice, index) in attributes.choices" :label="'选项' + (1 + index)" :rules="{
+                                    required: true, message: '选项内容不可为空', trigger: 'blur'
+                                }" :prop="'choices.' + index + '.name'">
+                                    <el-input v-model="choice.name" placeholder="选项内容" style="width: 200px;">
+                                        <template slot="append">
+                                            <input type="checkbox" v-model="choice.default" @change="changeChoiceDefault(index)">
+                                        </template>
+                                    </el-input> <el-button @click.prevent="removeChoice(choice)" v-show="attributes.choices.length >= 2">删除</el-button>
+                                </el-form-item>
+                                <el-form-item>
+                                    <el-button @click="addChoice">新增选项</el-button>
+                                </el-form-item>
+                            </template>
+                            <el-form-item>
+                                <el-button @click="saveField('changeField')" type="success">保存字段</el-button>
+                                <el-button @click="cleanField" type="danger">重置属性</el-button>
+                            </el-form-item>
+                        </el-form>
+                    </el-main>
+                </el-container>
+            </el-col>
+            <el-col :span="12">
+                <el-container>
+                    <el-main>
+                        <p>报名表单代码（可保存以便重复使用，下次只需粘贴在这）</p>
+                        <el-input
+                        type="textarea"
+                        :rows="10"
+                        placeholder="报名表单代码（可保存以便重复使用，下次只需粘贴在这）"
+                        @input="changeCode"
+                        v-model="formMetasCode">
+                        </el-input>
+                    </el-main>
+                </el-container>
+            </el-col>
+        </el-row>
+    </el-dialog>
+</div>

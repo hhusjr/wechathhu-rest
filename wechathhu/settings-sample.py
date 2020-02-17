@@ -31,6 +31,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'simpleui',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -47,7 +49,9 @@ INSTALLED_APPS = [
     'user',
     'reservation',
     'repair',
-    'guide'
+    'guide',
+
+    'import_export'
 ]
 
 MIDDLEWARE = [
@@ -65,7 +69,7 @@ ROOT_URLCONF = 'wechathhu.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -73,7 +77,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-            ],
+            ]
         },
     },
 ]
@@ -135,7 +139,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 STATIC_URL = '/static/'
 
 # Customize my own user model
@@ -164,8 +168,38 @@ EMAIL_HOST_PASSWORD = ''
 DEFAULT_FROM_EMAIL = ''
 
 # Celery
-CELERY_BROKER_URL = ''
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/1'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+CELERY_CREATE_MISSING_QUEUES = True
 
 # File uploading
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# SimpleUI Admin Style
+SIMPLEUI_STATIC_OFFLINE = True
+SIMPLEUI_LOGO = 'https://wechathhu.oss-cn-shanghai.aliyuncs.com/static/logo.png'
+SIMPLEUI_BANNER = 'https://wechathhu.oss-cn-shanghai.aliyuncs.com/header.jpg'
+SIMPLEUI_ANALYSIS = False
+SIMPLEUI_ICON = {
+    '教师': 'fas fa-user-circle',
+    '教师用户': 'fas fa-user',
+    '通讯录人员关系': 'fas fa-address-card',
+    '服务指南': 'fas fa-handshake',
+    '指南文件': 'fas fa-book',
+    '指南分类': 'fas fa-list',
+    '故障报修': 'fas fa-cog',
+    '报修请求': 'fas fa-bell',
+    '故障分类': 'fas fa-list',
+    '邮件提醒': 'fas fa-envelope',
+    '认证令牌': 'fas fa-key',
+    '令牌': 'fas fa-key',
+    '会议室预约': 'fas fa-calendar',
+    '预约记录': 'fas fa-list',
+    '会议室': 'fas fa-building',
+    '活动报名与打卡': 'fas fa-bullhorn',
+    '活动': 'fas fa-clone',
+    '报名记录': 'fas fa-list',
+    '打卡项': 'fas fa-cog',
+    '打卡历史': 'fas fa-history'
+}

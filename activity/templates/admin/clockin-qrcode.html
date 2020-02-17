@@ -1,0 +1,60 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_modify simpletags%}
+{% block content %}
+<div class="page-header">
+    <el-page-header @back="goBack" content="{{activity.name}}{{label}}二维码"/>
+</div>
+<div style="text-align: center;" id="qrcode-box">
+    <img :src="qrcodeImgSrc" @load="qrcodeLoad" alt="二维码" id="qrcode">
+    <p style="font-size: 13px;">二维码还有{% templatetag openvariable %} timedelta < 0 ? '...' : timedelta {% templatetag closevariable %}秒刷新</p>
+</div>
+<script type="text/javascript">
+    new Vue({
+        el:'.page-header',
+        methods: {
+            goBack: function() {
+                window.location.href='{% get_model_url %}'
+            }
+        }
+    })
+
+    let counter
+
+    new Vue({
+        el: '#qrcode-box',
+        data: {
+            qrcodeImgSrc: '',
+            timedelta: '...'
+        },
+
+        methods: {
+            refreshImg: function () {
+                this.qrcodeImgSrc = '{{qrcode_url}}?' + Math.random()
+            },
+
+            qrcodeLoad: function () {
+                let self = this
+                $.get({
+                    url: '{{qrcode_timedelta_url}}?' + Math.random(),
+                    dataType: 'json',
+                    success: function(res) {
+                        self.timedelta = res.timedelta
+                        counter = window.setInterval(() => {
+                            if (self.timedelta <= 0) {
+                                window.clearInterval(counter)
+                                self.refreshImg()
+                                return
+                            }
+                            self.timedelta -= 1
+                        }, 1000)
+                    }
+                })
+            }
+        },
+
+        created: function() {
+            this.refreshImg()
+        }
+    })
+</script>
+{% endblock %}

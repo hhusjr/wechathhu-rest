@@ -6,7 +6,7 @@ from wechathhu.settings import DEFAULT_FROM_EMAIL
 from email.header import make_header
 import os
 
-@shared_task
+@shared_task(queue='multi')
 def send_guide_email(id, email):
     guide = Guide.objects.get(id=id)
     file = guide.file

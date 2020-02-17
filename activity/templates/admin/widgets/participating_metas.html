@@ -1,0 +1,41 @@
+<input type="hidden" name="{{ widget.name }}" id="participating_metas">
+<table>
+{% for name, attributes in form_metas %}
+<tr>
+    <td>{{ name }}
+    {% if attributes.required %}
+    <span style="font-size: 12px; color: red;">*</span>
+    {% endif %}    
+    </td>
+    <td>
+    {% if attributes.type == 'text' %}
+    <input type="text" class="form-metas" value="{{ attributes.value }}" data-type="{{ attributes.type }}" data-name="{{ name }}" placeholder="输入{{ name }}">
+    {% elif attributes.type == 'number' %}
+    <input type="number" class="form-metas" value="{{ attributes.value }}" data-type="{{ attributes.type }}" data-name="{{ name }}" placeholder="输入{{ name }}">
+    {% elif attributes.type == 'textarea' %}
+    <textarea class="form-metas" rows="5" value="{{ attributes.value }}" data-type="{{ attributes.type }}" data-name="{{ name }}" placeholder="输入{{ name }}"></textarea>
+    {% elif attributes.type == 'radio' %}
+    <select class="form-metas" data-type="{{ attributes.type }}" data-name="{{ name }}">
+        {% for choice in attributes.choices %}
+            {% if choice == attributes.value %}
+            <option value="{{choice}}" selected>{{choice}}</option>
+            {% else %}
+            <option value="{{choice}}">{{choice}}</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+    {% elif attributes.type == 'checkbox' %}
+    <select multiple class="form-metas" data-type="{{ attributes.type }}" data-name="{{ name }}">
+        {% for choice in attributes.choices %}
+            {% if choice in attributes.value %}
+            <option value="{{choice}}" selected>{{choice}}</option>
+            {% else %}
+            <option value="{{choice}}">{{choice}}</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+    {% endif %}
+    </td>
+</tr>
+{% endfor %}
+</table>

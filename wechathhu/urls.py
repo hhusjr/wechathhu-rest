@@ -23,6 +23,10 @@ import repair.views
 import guide.views
 from user.auth_views import general, wechat
 
+admin.site.site_header = 'HHU计信院教师微服务'
+admin.site.site_title  = 'HHU计信院教师微服务'
+admin.site.index_title = '后台管理'
+
 router = routers.DefaultRouter()
 router.register(r'activities/clockins', activity.views.ClockinViewset, basename='clockin')
 router.register(r'activities', activity.views.ActivityViewset, basename='activity')
@@ -42,7 +46,6 @@ urlpatterns = (
 
     path('meetingrooms/available/', reservation.views.available_meetingrooms),
     path('repairs/categories/', repair.views.get_categories),
-    path('guides/<int:pk>/email/', guide.views.email_guide),
     path('guides/<int:pk>/email/', guide.views.email_guide),
 
     path('admin/', admin.site.urls),
