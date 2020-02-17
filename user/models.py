@@ -10,8 +10,8 @@ class CustomUserManager(UserManager):
 
 class User(AbstractUser):
     email = models.EmailField(_('email address'), unique=True, null=True, blank=False)
-    first_name = models.CharField(_('first name'), max_length=30, blank=False)
     last_name = models.CharField(_('last name'), max_length=150, blank=False)
+    first_name = models.CharField(_('first name'), max_length=30, blank=False)
     
     def get_fullname(self):
         if self.last_name is None or self.first_name is None:
