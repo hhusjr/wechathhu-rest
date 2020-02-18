@@ -5,7 +5,7 @@ class Activity(models.Model):
     time_start = models.DateTimeField(verbose_name='起始时间')
     time_end = models.DateTimeField(verbose_name='结束时间')
     location = models.CharField(max_length=200, verbose_name='活动地点')
-    name = models.CharField(max_length=30, verbose_name='名称')
+    name = models.CharField(max_length=30, verbose_name='名称', unique=True)
     description = models.TextField(verbose_name='描述')
     form_metas = models.TextField(verbose_name='报名表单')
     open_for_enrollment = models.BooleanField(default=False, verbose_name='开放报名？')
