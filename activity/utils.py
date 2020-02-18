@@ -55,6 +55,7 @@ def match_clockin_query_expr(expr, user_clockins):
                 literal_stack.append(token)
             else:
                 while len(op_stack) and not is_ldim(op_stack[-1]) \
+                    and (not (symbols[token][1] == 1 and symbols[op_stack[-1]][1] == 1)) \
                     and ((symbols[op_stack[-1]][0] >= symbols[token][0] \
                         or is_rdim(token))):
                     literals = [literal_stack.pop() for i in range(symbols[op_stack[-1]][1])]

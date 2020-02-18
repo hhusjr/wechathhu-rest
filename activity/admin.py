@@ -173,7 +173,7 @@ class EnrollmentAdmin(ExportMixin, admin.ModelAdmin):
     list_filter = ('activity', 'user')
     autocomplete_fields = ('user', 'activity')
     search_fields = ('clockin_filter', )
-    search_placeholder = '打卡筛选(支持且/或/未)'
+    search_placeholder = '打卡筛选(且/或/未/括号)'
     resource_class = EnrollmentResource
 
     def get_resource_kwargs(self, request, *args, **kwargs):
