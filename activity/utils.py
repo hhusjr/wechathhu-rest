@@ -62,10 +62,10 @@ def match_clockin_query_expr(expr, user_clockins):
                     literal_stack.append(symbols[op_stack[-1]][2](*literals))
                     op_stack.pop()
                 
-                if len(op_stack) and is_ldim(op_stack[-1]):
-                    op_stack.pop()
-                
-                if not is_rdim(token):
+                if is_rdim(token):
+                    if len(op_stack) and is_ldim(op_stack[-1]):
+                        op_stack.pop()
+                else:
                     op_stack.append(token)
 
         return literal_stack[0]
