@@ -1,5 +1,5 @@
 from django.contrib import admin
-from activity.models import Enrollment, ClockinMeta, ClockinRecord, Activity
+from activity.models import Enrollment, ClockinMeta, ClockinRecord, Activity, ClockinStaff
 from django.contrib.admin import helpers, widgets
 from django.core.exceptions import PermissionDenied
 from django import forms
@@ -256,14 +256,43 @@ class ClockinMetaForm(forms.ModelForm):
                 raise forms.ValidationError('标签中不得包含空字符或者下列字符之一：' + ' '.join(stop_words))
         return label
 
+class ClockinStaffInline(admin.TabularInline):
+    model = ClockinStaff
+    autocomplete_fields = ('staff', )
+
 class ClockinMetaAdmin(admin.ModelAdmin):
     list_display = ('activity', 'label', 'created', 'from_time', 'to_time', 'qrcode')
     list_filter = ('activity', )
     exclude = ('generated_key', )    
     actions = ('generate_clockin_qrcode', )
     autocomplete_fields = ('activity', )
+    inlines = (ClockinStaffInline, )
     form = ClockinMetaForm
 
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        if request.user.has_perm('activity.view_clockin_meta'):
+            return queryset
+        return queryset.filter(clockin_staffs__staff=request.user)
+
+    def has_module_permission(self, request):
+        return True
+
+    def has_view_permission(self, request, obj=None):
+        return super().has_view_permission(request, obj) or obj is None
+
+    def check_and_get_clockin_meta(self, request, pk):
+        try:
+            clockin_meta = ClockinMeta.objects.get(pk=pk)
+        except ClockinMeta.DoesNotExist:
+            raise Http404
+
+        if super().has_view_permission(request, clockin_meta) \
+            or ClockinStaff.objects.filter(clockin_meta=clockin_meta, staff=request.user).count():
+            return clockin_meta
+        
+        raise PermissionDenied
+        
     def get_urls(self):
         return [
             path('<int:pk>/qrcode/', self.admin_site.admin_view(self.generate_clockin_qrcode_view), name='qrcode'),
@@ -273,15 +302,13 @@ class ClockinMetaAdmin(admin.ModelAdmin):
 
     def qrcode(self, obj):
         return format_html(
-            '<a class="el-button el-button--default is-circle" href="{}"><i class="fas fa-eye"></i></a>',
+            '<a class="el-button el-button--default is-circle" href="{}" target="_blank"><i class="fas fa-eye"></i></a>',
             reverse('admin:qrcode', args=[obj.pk]),
         )
 
     def generate_clockin_qrcode_view(self, request, pk):
-        try:
-            clockin_meta = ClockinMeta.objects.get(pk=pk)
-        except ClockinMeta.DoesNotExist:
-            raise Http404
+        clockin_meta = self.check_and_get_clockin_meta(request, pk)
+
         context = dict(
            self.admin_site.each_context(request),
            qrcode_url=reverse('admin:qrcode_img', kwargs={
@@ -297,20 +324,14 @@ class ClockinMetaAdmin(admin.ModelAdmin):
         return TemplateResponse(request, 'admin/clockin-qrcode.html', context)
 
     def get_qrcode_expiration_timedelta(self, request, pk):
-        try:
-            clockin_meta = ClockinMeta.objects.get(pk=pk)
-        except ClockinMeta.DoesNotExist:
-            raise Http404
-        
+        clockin_meta = self.check_and_get_clockin_meta(request, pk)
+
         return JsonResponse({
             'timedelta': math.ceil((clockin_meta.changed + timedelta(seconds=ActivityConfig.clockin_qrcode_expire) - timezone.now()).total_seconds())
         })
 
     def generate_clockin_qrcode_image(self, request, pk):
-        try:
-            clockin_meta = ClockinMeta.objects.get(pk=pk)
-        except ClockinMeta.DoesNotExist:
-            raise Http404
+        clockin_meta = self.check_and_get_clockin_meta(request, pk)
 
         if timezone.now() > clockin_meta.changed + timedelta(seconds=ActivityConfig.clockin_qrcode_expire):
             clockin_meta.generated_key = uuid.uuid4()

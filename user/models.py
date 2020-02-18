@@ -19,14 +19,14 @@ class User(AbstractUser):
         return self.last_name + self.first_name
 
     # Fields provided for API auth
-    wechat_open_id = models.CharField(verbose_name='微信openid', max_length=255, unique=True, null=True, blank=True)
+    wechat_open_id = models.CharField(verbose_name='微信openid', max_length=150, unique=True, null=True, blank=True)
 
     objects = CustomUserManager()
 
     REQUIRED_FIELDS = ()
 
     def __str__(self):
-        return self.username + '-' + self.get_fullname()
+        return '{}-{}'.format(self.username, self.get_fullname())
 
     class Meta:
         verbose_name = '教师用户'
@@ -44,7 +44,7 @@ class UserMeta(models.Model):
     description = models.TextField(blank=True, null=True, verbose_name='简介')
 
     def __str__(self):
-        return str(self.user)
+        return '{}的通讯录信息'.format(self.user)
 
     class Meta:
         verbose_name = '教师通讯录信息'
@@ -53,6 +53,9 @@ class UserMeta(models.Model):
 class Contact(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contacts', verbose_name='用户')
     friend_user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='同事')
+
+    def __str__(self):
+        return '{}-{}'.format(self.user.username, self.friend_user.username)
     
     class Meta:
         unique_together = (('user', 'friend_user'), )

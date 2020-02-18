@@ -1,38 +1,48 @@
 {% extends "admin/base_site.html" %}
 {% load i18n admin_urls static admin_modify simpletags%}
+{% block title %}{{activity.name}}{{label}}打卡项 - HHU计信院教师微服务管理{% endblock %}
 {% block content %}
-<div class="page-header">
-    <el-page-header @back="goBack" content="{{activity.name}}{{label}}二维码"/>
-</div>
 <div style="text-align: center;" id="qrcode-box">
     <img :src="qrcodeImgSrc" @load="qrcodeLoad" alt="二维码" id="qrcode">
     <p style="font-size: 13px;">二维码还有{% templatetag openvariable %} timedelta < 0 ? '...' : timedelta {% templatetag closevariable %}秒刷新</p>
+    <el-dialog
+    title="提示"
+    :before-close="beforeDialogClose"
+    :visible.sync="dialogVisible"
+    width="30%">
+    <span>需要刷新页面以继续打卡</span>
+    <span slot="footer" class="dialog-footer">
+        <el-button type="danger" @click="window.location.reload()">刷新</el-button>
+    </span>
+    </el-dialog>
 </div>
 <script type="text/javascript">
-    new Vue({
-        el:'.page-header',
-        methods: {
-            goBack: function() {
-                window.location.href='{% get_model_url %}'
-            }
-        }
-    })
+    // the query request will be terminated after TIME_LIMIT milliseconds
+    const TIME_LIMIT = 30 * 60 * 1000 // 30min
 
     let counter
+    let terminated = false
 
     new Vue({
         el: '#qrcode-box',
         data: {
             qrcodeImgSrc: '',
-            timedelta: '...'
+            timedelta: '...',
+            dialogVisible: false
         },
 
         methods: {
+            beforeDialogClose: function () {
+                // user cannot close the dialog
+                return
+            },
+
             refreshImg: function () {
                 this.qrcodeImgSrc = '{{qrcode_url}}?' + Math.random()
             },
 
             qrcodeLoad: function () {
+                if (terminated) return
                 let self = this
                 $.get({
                     url: '{{qrcode_timedelta_url}}?' + Math.random(),
@@ -53,7 +63,18 @@
         },
 
         created: function() {
+            let self = this
+
+            window.setTimeout(() => {
+                terminated = true
+                self.dialogVisible = true
+            }, TIME_LIMIT)
+            
             this.refreshImg()
+        },
+
+        destroyed: function() {
+            window.clearInterval(counter)
         }
     })
 </script>

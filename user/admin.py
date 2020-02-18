@@ -46,7 +46,7 @@ class UserResource(UserResourceBase):
 
 class CustomUserAdmin(ImportExportMixin, UserAdmin):
     resource_class = UserResource
-    list_display = ('username', 'fullname', 'email', 'meta__department', 'meta__post', 'meta__phone')
+    list_display = ('username', 'fullname', 'email', 'meta__department', 'meta__post', 'meta__phone', 'date_joined')
     search_fields = ('username', 'fullname')
     list_filter = ('meta__department', 'meta__post')
     exclude = ('wechat_open_id', )
@@ -74,12 +74,4 @@ CustomUserAdmin.meta__department.short_description = '部门'
 CustomUserAdmin.meta__post.short_description = '职位'
 CustomUserAdmin.meta__phone.short_description = '手机号'
 
-class ContactAdmin(admin.ModelAdmin):
-    list_display = ('user', 'friend_user')
-    search_fields = ('user__username', 'fullname')
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).annotate(fullname=Concat('user__last_name', 'user__first_name'))
-
 admin.site.register(User, CustomUserAdmin)
-admin.site.register(Contact, ContactAdmin)

@@ -32,7 +32,7 @@ class Enrollment(models.Model):
     participating_metas = models.TextField(verbose_name='参与信息')
 
     def __str__(self):
-        return str(self.user.get_fullname()) + '报名' + self.activity.name
+        return '{}报名{}'.format(self.user.get_fullname(), self.activity.name)
     
     class Meta:
         unique_together = (('activity', 'user'), )
@@ -50,7 +50,7 @@ class ClockinMeta(models.Model):
     to_time = models.DateTimeField(verbose_name='有效时间（到）')
 
     def __str__(self):
-        return self.activity.name + ' ' + self.label
+        return '{} {}'.format(self.activity.name, self.label)
 
     class Meta:
         unique_together = (('activity', 'label'), )
@@ -68,3 +68,15 @@ class ClockinRecord(models.Model):
         ordering = ('-created', '-id')
         verbose_name = '打卡历史'
         verbose_name_plural = '打卡历史'
+
+class ClockinStaff(models.Model):
+    clockin_meta = models.ForeignKey(ClockinMeta, on_delete=models.CASCADE, verbose_name='打卡项', related_name='clockin_staffs')
+    staff = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='打卡员')
+
+    def __str__(self):
+        return '{}负责{}的{}打卡'.format(self.staff.username, self.clockin_meta.activity.name, self.clockin_meta.label)
+
+    class Meta:
+        unique_together = (('clockin_meta', 'staff'), )
+        verbose_name = '打卡员'
+        verbose_name_plural = '打卡员'

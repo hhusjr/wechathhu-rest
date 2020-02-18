@@ -1,7 +1,7 @@
 from django.db import models
 
 class GuideCategory(models.Model):
-    name = models.CharField(max_length=255, unique=True, verbose_name='类别名称')
+    name = models.CharField(max_length=150, unique=True, verbose_name='类别名称')
 
     def __str__(self):
         return self.name
@@ -9,6 +9,7 @@ class GuideCategory(models.Model):
     class Meta:
         verbose_name = '指南分类'
         verbose_name_plural = '指南分类'
+        ordering = ('name', '-id')
 
 class Guide(models.Model):
     name = models.CharField(max_length=255, verbose_name='服务指南名称')
@@ -17,7 +18,7 @@ class Guide(models.Model):
     created = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     
     def __str__(self):
-        return self.category.name + '-' + self.name
+        return '{}-{}'.format(self.category.name, self.name)
 
     class Meta:
         ordering = ('-created', '-id')

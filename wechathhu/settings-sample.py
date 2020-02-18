@@ -185,7 +185,6 @@ SIMPLEUI_ANALYSIS = False
 SIMPLEUI_ICON = {
     '教师': 'fas fa-user-circle',
     '教师用户': 'fas fa-user',
-    '通讯录人员关系': 'fas fa-address-card',
     '服务指南': 'fas fa-handshake',
     '指南文件': 'fas fa-book',
     '指南分类': 'fas fa-list',
@@ -204,3 +203,4 @@ SIMPLEUI_ICON = {
     '打卡项': 'fas fa-cog',
     '打卡历史': 'fas fa-history'
 }
+SIMPLEUI_INDEX = 'http://cies.hhu.edu.cn'

@@ -16,6 +16,7 @@ class Meetingroom(models.Model):
     class Meta:
         verbose_name = '会议室'
         verbose_name_plural = '会议室'
+        ordering = ('name', '-id')
     
 class Reservation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='预约者')
