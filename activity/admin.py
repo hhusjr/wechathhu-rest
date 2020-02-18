@@ -200,7 +200,7 @@ class EnrollmentAdmin(ExportMixin, admin.ModelAdmin):
 
     def clockin(self, obj):
         clockins = [x.label for x in obj.activity.clockins.order_by('from_time', 'created').all()]
-        user_clockins = [x.clockin_meta.label for x in obj.user.clockin_records.all()]
+        user_clockins = [x.clockin_meta.label for x in obj.user.clockin_records.filter(clockin_meta__activity=obj.activity).all()]
         return format_html(' '.join(format_html('<span style="color: {};">{}</span>', 'green' if x in user_clockins else 'red', mark_safe(x)) for x in clockins))
 
     def get_search_results(self, request, queryset, search_term):
