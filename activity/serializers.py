@@ -113,10 +113,10 @@ class EnrollmentSerializer(serializers.ModelSerializer):
                 'text': lambda x, rules, name: str(x),
                 'textarea': lambda x, rules, name: str(x),
                 'number': lambda x, rules, name: int(x) if x.isdigit() else EnrollmentFormFormatError('数字不合法', name),
-                'radio': lambda x, rules, name: str(x) \
+                'radio': lambda x, rules, name: x \
                     if x in rules['choices'] else EnrollmentFormFormatError('单选项不合法', name),
-                'checkbox': lambda x, rules, name: str(x) \
-                    if set(x).issubset(set(rules['choices'])) else  EnrollmentFormFormatError('多选项不合法', name)
+                'checkbox': lambda x, rules, name: x \
+                    if isinstance(x, list) and set(x).issubset(set(rules['choices'])) else EnrollmentFormFormatError('多选项不合法', name)
             }
 
             for name, rules in form_metas.items():

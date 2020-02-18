@@ -147,7 +147,7 @@ $(document).ready(function() {
             },
 
             changeChoiceDefault(index) {
-                if (this.type == 'checkbox' || !this.attributes.choices[index]) return
+                if (this.type == 'checkbox' || !this.attributes.choices[index] || !this.attributes.choices[index].default) return
                 for (let i in this.attributes.choices) {
                     this.attributes.choices[i].default = false
                 }

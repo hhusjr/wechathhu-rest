@@ -66,6 +66,7 @@
                             </el-form-item>
                             <el-form-item label="必填" prop="required">
                                 <el-checkbox v-model="attributes.required">是否必填</el-checkbox>
+                                <p class="help">该选项对于单选框或多选框型字段无效。</p>
                             </el-form-item>
                             <el-form-item label="默认文本" prop="defaultText" v-if="type == 'text'">
                                 <el-input v-model="attributes.defaultText" placeholder="默认文本值"></el-input>
