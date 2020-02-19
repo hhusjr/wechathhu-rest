@@ -3,7 +3,7 @@
 {% block title %}{{activity.name}}{{label}}打卡项 - HHU计信院教师微服务管理{% endblock %}
 {% block content %}
 <div style="text-align: center;" id="qrcode-box">
-    <img :src="qrcodeImgSrc" @load="qrcodeLoad" alt="二维码" id="qrcode">
+    <img :src="qrcodeImgSrc" @load="qrcodeLoad" alt="二维码" id="qrcode" style="width: 570px; max-width: 100%; height: auto;">
     <p style="font-size: 13px;">二维码还有{% templatetag openvariable %} timedelta < 0 ? '...' : timedelta {% templatetag closevariable %}秒刷新</p>
     <el-dialog
     title="提示"
