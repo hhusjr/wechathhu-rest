@@ -175,6 +175,7 @@ class EnrollmentAdmin(ExportMixin, admin.ModelAdmin):
     search_fields = ('clockin_filter', )
     search_placeholder = '打卡筛选(且/或/未/括号)'
     resource_class = EnrollmentResource
+    list_per_page = 30
 
     def get_resource_kwargs(self, request, *args, **kwargs):
         try:

@@ -16,7 +16,7 @@ class User(AbstractUser):
     def get_fullname(self):
         if self.last_name is None or self.first_name is None:
             return None
-        return self.last_name + self.first_name
+        return '{}{}'.format(self.last_name, self.first_name)
 
     # Fields provided for API auth
     wechat_open_id = models.CharField(verbose_name='微信openid', max_length=150, unique=True, null=True, blank=True)
