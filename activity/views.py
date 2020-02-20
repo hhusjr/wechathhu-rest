@@ -14,7 +14,9 @@ from django.utils import timezone
 from datetime import timedelta
 import binascii
 
-class ActivityViewset(viewsets.ModelViewSet):
+class ActivityViewset(mixins.ListModelMixin,
+                      mixins.RetrieveModelMixin,
+                      GenericViewSet):
     permission_classes = (permissions.IsAuthenticated, )
     serializer_class = ActivitySerializer
     filter_backends = (filters.SearchFilter, )
