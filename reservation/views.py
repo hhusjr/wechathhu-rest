@@ -1,126 +1,56 @@
 from reservation.models import Meetingroom, Reservation
 from rest_framework import views, status, permissions, mixins, generics, viewsets
 from rest_framework.viewsets import GenericViewSet
-from datetime import timedelta, datetime
+from datetime import timedelta
+import datetime
 from dateutil import parser
 from django.utils import timezone
 from rest_framework.response import Response
-from reservation.serializers import ReservationSerializer
+from reservation.serializers import ReservationSerializer, MeetingroomSerializer
 import pytz
 from functools import cmp_to_key
 from rest_framework.decorators import api_view, permission_classes
+from user.models import UserMeta
 
 @api_view(('GET', ))
 @permission_classes((permissions.IsAuthenticated, ))
 def available_meetingrooms(request):
-    unit = timedelta(minutes=5)
     try:
-        target_from_time = parser.parse(request.query_params['time_from'])
-        target_from_time = target_from_time.replace(second=0, microsecond=0, minute=target_from_time.time().minute // 5 * 5)
-        target_to_time = parser.parse(request.query_params['time_to'])
-        target_to_time = target_to_time.replace(second=0, microsecond=0, minute=target_to_time.time().minute // 5 * 5)
-
-        if target_from_time <= timezone.now():
-            return Response({
-                'detail': '最早的开始时间必须在现在以后。'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        if target_to_time - target_from_time < 2 * unit:
-            return Response({
-                'detail': '预约会议时间不得少于10分钟。'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        kwargs = {}
-        if 'people_count' in request.query_params:
-            kwargs['seats_count__gte'] = int(request.query_params['people_count'])
-        if 'label' in request.query_params:
-            kwargs['label__icontains'] = request.query_params['label']
-        if 'location' in request.query_params:
-            kwargs['location__icontains'] = request.query_params['location']
-
-        if 'length' in request.query_params:
-            length_minutes = int(request.query_params['length'])
-        else:
-            length_minutes = int((target_to_time - target_from_time).total_seconds()) // 60
-        length_minutes = length_minutes // 5 * 5
-
-        if length_minutes < 2 * 5 or length_minutes > 36 * 5:
-            return Response({
-                'detail': '预约会议时间不得少于10分钟，不得超过3小时。'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-    except (TypeError, ValueError, KeyError):
+        query_from = parser.parse(request.query_params['query_from'])
+        query_to = parser.parse(request.query_params['query_to'])
+    except (KeyError, ValueError):
         return Response({
-            'detail': '非法参数。'
+            'detail': '查询的开始和结束时间必须以正确格式给定。'
         }, status=status.HTTP_400_BAD_REQUEST)
 
-    meetingrooms = Meetingroom.objects.filter(**kwargs)
+    try:
+        people_count = int(request.query_params.get('people_count', 0))
+    except (ValueError, TypeError):
+        people_count = 0
 
-    resultset = {}
+    meetingrooms = Meetingroom.objects.filter(seats_count__gte=people_count).order_by('seats_count').all()    
+
+    meetingrooms_display = []
     for meetingroom in meetingrooms:
-        result = {
-            'id': meetingroom.id,
-            'info': {
-                'name': meetingroom.name,
-                'location': meetingroom.location,
-                'seats_count': meetingroom.seats_count,
-                'label': meetingroom.label,
-                'description': meetingroom.description
-            },
-            'choices': []
-        }
-
-        # generate timetable for each available meetingroom
-        timetable = {}
-        cur = target_from_time
-        while cur <= target_to_time:
-            timetable[cur] = True
-            cur += unit
-
-        reservations = meetingroom.reservations.filter(reserve_to__gt=target_from_time, reserve_from__lt=target_to_time).all()
+        reservations = Reservation.objects.filter(meetingroom=meetingroom, reserve_from__gte=query_from, reserve_to__lte=query_to)
+        reservations_display = []
         for reservation in reservations:
-            cur = reservation.reserve_from
-            while cur < reservation.reserve_to:
-                timetable[cur] = False
-                cur += unit
-            timetable[reservation.reserve_from] = True
-        
-        # calculate available times of each meetingroom
-        cur = target_from_time
-        cnt = 0
-        while cur <= target_to_time:
-            if timetable[cur]:
-                if cnt == length_minutes:
-                    result['choices'].append((cur - timedelta(minutes=length_minutes), cur))
-                    cnt = 5
-                else:
-                    cnt += 5
-            else:
-                cnt = 0
-            cur += unit
-        
-        if result['choices']:
-            if meetingroom.location not in resultset:
-                resultset[meetingroom.location] = []
-            resultset[meetingroom.location].append(result)
-
-    def cmp_meetingrooms(a, b):
-        if a['info']['seats_count'] == b['info']['seats_count']:
-            return -1 if a['info']['name'] < b['info']['name'] else 1
-        return -1 if a['info']['seats_count'] < b['info']['seats_count'] else 1
-
-    resultset_final = []
-    for location, meetingrooms in resultset.items():
-        resultset_final.append({
-            'location': location,
-            'meetingrooms': sorted(meetingrooms, key=cmp_to_key(cmp_meetingrooms))
+            try:
+                contact = reservation.user.meta.phone
+            except UserMeta.DoesNotExist:
+                contact = None
+            reservations_display.append({
+                'time_range': (reservation.reserve_from, reservation.reserve_to),
+                'reserve_user': str(reservation.user),
+                'contact': contact,
+                'description': reservation.description
+            })
+        meetingrooms_display.append({
+            'reservations': reservations_display,
+            'meetingroom': MeetingroomSerializer(meetingroom).data
         })
-
-    def cmp_resultset(a, b):
-        if (a['meetingrooms'][0]['info']['seats_count'] == b['meetingrooms'][0]['info']['seats_count']):
-            return -1 if a['location'] < b['location'] else 1
-        return -1 if a['meetingrooms'][0]['info']['seats_count'] < b['meetingrooms'][0]['info']['seats_count'] else 1
-
-    return Response(sorted(resultset_final, key=cmp_to_key(cmp_resultset)))
+    
+    return Response(meetingrooms_display)
 
 class ReservationViewset(mixins.CreateModelMixin,
                          mixins.DestroyModelMixin,
@@ -130,7 +60,7 @@ class ReservationViewset(mixins.CreateModelMixin,
     serializer_class = ReservationSerializer
 
     def get_queryset(self):
-        return Reservation.objects.filter(user=self.request.user).all()
+        return Reservation.objects.filter(user=self.request.user, reserve_to__gte=timezone.now()).all()
 
     def perform_create(self, serializer):
         return serializer.save(user=self.request.user)

@@ -1,0 +1,135 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/changelists.css" %}?_=20180905"/>
+    <link rel="stylesheet" type="text/css" href="{% static "fullcalendar/core/main.min.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "fullcalendar/daygrid/main.min.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "fullcalendar/timegrid/main.min.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "fullcalendar/list/main.min.css" %}"/>
+    <style type="text/css">
+    #calendar {
+        padding: 20px;
+    }
+
+    tbody a .fc-content {
+        color: #fff !important;
+    }
+
+    .fc table tbody tr td, .fc table tbody tr th {
+        background: rgba(0, 0, 0, 0) !important;
+    }
+
+    .fc-unthemed td.fc-today {
+        background: #fcf8e3 !important;
+    }
+
+    .fc-highlight-skeleton .fc-highlight {
+        background: #bce8f1 !important;
+        opacity: 0.3;
+    }
+    </style>
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script src="{% static "fullcalendar/core/main.min.js" %}"></script>
+    <script src="{% static "fullcalendar/daygrid/main.min.js" %}"></script>
+    <script src="{% static "fullcalendar/interaction/main.min.js" %}"></script>
+    <script src="{% static "fullcalendar/timegrid/main.min.js" %}"></script>
+    <script src="{% static "fullcalendar/list/main.min.js" %}"></script>
+    <script src="{% static "fullcalendar/core/locales-all.min.js" %}"></script>
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} change-list{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div id="changelist">
+        <div id="toolbar">
+            <el-select class="simpleui-form-item" filterable v-model="meetingroom" clearable placeholder="选择会议室">
+                {% for meetingroom in meetingrooms %}
+                <el-option label="{{ meetingroom.name }}" value="{{ meetingroom.id }}"></el-option>
+                {% endfor %}
+            </el-select>
+            <el-button type="primary" icon="el-icon-search" @click="chooseMeetingroom">{% trans 'Search' %}</el-button>
+            <el-button type="primary" icon="el-icon-refresh" @click="reloadReservation">刷新</el-button>
+        </div>
+        <div id="calendar"></div>
+    </div>
+</div>
+<script>
+var CALENDAR = null
+
+function dismissAddRelatedObjectPopup(window)
+{
+    CALENDAR.refetchEvents()
+    window.close()
+}
+
+function renderCalendar(meetingroom)
+{
+    let calendarEl = document.getElementById('calendar')
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        plugins: [ 'interaction', 'dayGrid', 'timeGrid', 'list' ],
+        defaultView: 'dayGridMonth',
+        defaultDate: '2020-02-07',
+        locale: 'cn',
+        header: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+        },
+        selectable: meetingroom ? true : false,
+        selectOverlap: false,
+        select: function(selectionInfo) {
+            let reserveFrom = this.formatIso(selectionInfo.start)
+            let reserveTo = this.formatIso(selectionInfo.end)
+            let cur = meetingroom
+            window.open('{% url cl.opts|admin_urlname:'add' %}?_popup=1&show_meetingroom=' + cur + '&show_reserve_from=' + encodeURIComponent(reserveFrom) + '&show_reserve_to=' + encodeURIComponent(reserveTo),
+            'reservationadd', 'height=500,width=800,resizable=yes,scrollbars=yes')
+        },
+        buttonText: {
+            today:    '今天',
+            month:    '月',
+            week:     '周',
+            day:      '天',
+            listWeek:     '每周清单'
+        },
+        events: {
+            url: './all/?meetingroom=' + meetingroom,
+        },
+        eventClick: function(info) {
+            window.open(info.event.url, 'reservationview', 'height=500,width=800,resizable=yes,scrollbars=yes')
+            info.jsEvent.preventDefault()
+        }
+    })
+    calendar.render();
+    return calendar
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    new Vue({
+        el: '#content-main',
+        data: {
+            meetingroom: '',
+        },
+        mounted() {
+            CALENDAR = renderCalendar(this.meetingroom)
+        },
+        methods: {
+            chooseMeetingroom() {
+                CALENDAR.destroy()
+                CALENDAR = renderCalendar(this.meetingroom)
+            },
+            reloadReservation() {
+                CALENDAR.refetchEvents()
+            }
+        }
+    })
+});
+</script>
+{% endblock %}

@@ -4,11 +4,8 @@ from user.models import User
 from django.utils import timezone
 
 class Meetingroom(models.Model):
-    name = models.CharField(max_length=32, verbose_name='会议室名称')
-    location = models.CharField(max_length=128, verbose_name='会议室位置')
+    name = models.CharField(max_length=32, verbose_name='会议室名称', unique=True)
     seats_count = models.IntegerField(verbose_name='会议室座位数')
-    label = models.CharField(max_length=32, verbose_name='会议室标签', blank=True)
-    description = models.TextField(verbose_name='会议室简介', blank=True)
 
     def __str__(self):
         return self.name
@@ -25,6 +22,9 @@ class Reservation(models.Model):
     reserve_to = models.DateTimeField(verbose_name='结束时间')
     created = models.DateTimeField(auto_now_add=True, verbose_name='预约时间')
     description = models.TextField(verbose_name='预约原因')
+
+    def __str__(self):
+        return '{}预约{}'.format(self.user, self.meetingroom)
 
     class Meta:
         ordering = ('-created', '-id')

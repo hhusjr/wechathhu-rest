@@ -12,10 +12,7 @@ class MeetingroomSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'name',
-            'location',
             'seats_count',
-            'label',
-            'description'
         )
 
 class ReservationSerializer(serializers.ModelSerializer):
@@ -36,14 +33,14 @@ class ReservationSerializer(serializers.ModelSerializer):
         read_only_fields = ('user', )
     
     def validate(self, data):
-        reserve_from = data['reserve_from'].replace(second=0, microsecond=0, minute=data['reserve_from'].time().minute // 5 * 5)
-        reserve_to = data['reserve_to'].replace(second=0, microsecond=0, minute=data['reserve_to'].time().minute // 5 * 5)
-        unit = timedelta(minutes=5)
-        if reserve_from <= timezone.now():
-            raise serializers.ValidationError('开始时间必须在现在以后。')
+        reserve_from = data['reserve_from'].replace(second=0, microsecond=0, minute=data['reserve_from'].time().minute // 30 * 30)
+        reserve_to = data['reserve_to'].replace(second=0, microsecond=0, minute=data['reserve_to'].time().minute // 30 * 30)
+        unit = timedelta(minutes=30)
+        if reserve_to <= timezone.now():
+            raise serializers.ValidationError('结束时间必须在现在以后。')
         delta = reserve_to - reserve_from
-        if delta < 2 * unit or delta > 36 * unit:
-            raise serializers.ValidationError('预约会议时间不得少于10分钟，不得超过3小时。')
+        if delta < 1 * unit or delta > 3 * 2 * unit:
+            raise serializers.ValidationError('预约会议时间不得少于30分钟，不得超过3小时。')
             
         validated_data = {
             'reserve_from': reserve_from,
