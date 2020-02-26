@@ -31,7 +31,10 @@ class ContactViewset(mixins.ListModelMixin,
     def get_queryset(self):
         if self.request.query_params.get('my', 'no').strip() == 'yes':
             friends = self.request.user.contacts.values('friend_user')
-            queryset = UserMeta.objects.filter(Q(user__in=friends) | Q(user__department=self.request.user.department))
+            cond = Q(user__in=friends)
+            if self.request.user.department is not None:
+                cond |= Q(user__department=self.request.user.department)
+            queryset = UserMeta.objects.filter(cond)
         else:
             queryset = UserMeta.objects
         return queryset.annotate(fullname=Concat('user__last_name', 'user__first_name')).all()
