@@ -32,8 +32,11 @@ class ContactViewset(mixins.ListModelMixin,
         if self.request.query_params.get('my', 'no').strip() == 'yes':
             friends = self.request.user.contacts.values('friend_user')
             cond = Q(user__in=friends)
-            if self.request.user.department is not None:
-                cond |= Q(user__department=self.request.user.department)
+            try:
+                if self.request.user.department is not None:
+                    cond |= Q(user__department=self.request.user.department)
+            except User.DoesNotExist:
+                pass
             queryset = UserMeta.objects.filter(cond)
         else:
             queryset = UserMeta.objects
