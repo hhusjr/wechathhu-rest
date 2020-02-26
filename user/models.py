@@ -21,7 +21,7 @@ class Department(models.Model):
 
 class User(AbstractUser):
     email = models.EmailField(_('email address'), null=True, blank=True)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, related_name='department_users', verbose_name='系所')
+    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, related_name='department_users', verbose_name='系所')
     last_name = models.CharField(_('last name'), max_length=150, blank=False)
     first_name = models.CharField(_('first name'), max_length=30, blank=False)
     
