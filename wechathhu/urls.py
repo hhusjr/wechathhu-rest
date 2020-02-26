@@ -35,6 +35,7 @@ router.register(r'reservations', reservation.views.ReservationViewset, basename=
 router.register(r'repairs', repair.views.RepairRequestViewset, basename='repair')
 router.register(r'guides', guide.views.GuideViewset, basename='guide')
 router.register(r'contacts', user.views.ContactViewset, basename='contact')
+router.register(r'departments', user.views.DepartmentViewset, basename='department')
 
 urlpatterns = (
     path('auth/wechat-code2token/', wechat.code2token),

@@ -1,10 +1,17 @@
-from user.models import User, UserMeta, Contact
+from user.models import User, UserMeta, Contact, Department
 from rest_framework import viewsets, permissions, views, status, filters, mixins, generics
-from user.serializers import UserSerializer, UserUpdateSerializer, UserChangePasswordSerializer, UserMetaSerializer
+from user.serializers import UserSerializer, UserUpdateSerializer, UserChangePasswordSerializer, UserMetaSerializer, DepartmentSerializer
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from django.db.models.functions import Concat
+from django.db.models import Q
 from django.http import Http404
+
+class DepartmentViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated, )
+    serializer_class = DepartmentSerializer
+    pagination_class = None
+    queryset = Department.objects.all()
 
 class ContactViewset(mixins.ListModelMixin,
                      mixins.RetrieveModelMixin,
@@ -13,7 +20,7 @@ class ContactViewset(mixins.ListModelMixin,
     serializer_class = UserMetaSerializer
     pagination_class = None
     filter_backends = (filters.SearchFilter, )
-    search_fields = ('fullname', 'post', 'department', 'qq', 'tel', 'phone')
+    search_fields = ('fullname', 'post', 'user__department__name', 'qq', 'tel', 'phone')
 
     def list(self, request):
         queryset = self.filter_queryset(self.get_queryset())
@@ -24,7 +31,7 @@ class ContactViewset(mixins.ListModelMixin,
     def get_queryset(self):
         if self.request.query_params.get('my', 'no').strip() == 'yes':
             friends = self.request.user.contacts.values('friend_user')
-            queryset = UserMeta.objects.filter(user__in=friends)
+            queryset = UserMeta.objects.filter(Q(user__in=friends) | Q(user__department=self.request.user.department))
         else:
             queryset = UserMeta.objects
         return queryset.annotate(fullname=Concat('user__last_name', 'user__first_name')).all()

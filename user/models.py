@@ -8,8 +8,20 @@ class CustomUserManager(UserManager):
     def get_queryset(self):
         return super().get_queryset().annotate(fullname=Concat('last_name', 'first_name'))
 
+class Department(models.Model):
+    name = models.CharField(max_length=150, unique=True, verbose_name='系所')
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = '系所'
+        verbose_name_plural = '系所'
+        ordering = ('name', 'id')
+
 class User(AbstractUser):
     email = models.EmailField(_('email address'), null=True, blank=True)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, related_name='department_users', verbose_name='系所')
     last_name = models.CharField(_('last name'), max_length=150, blank=False)
     first_name = models.CharField(_('first name'), max_length=30, blank=False)
     
@@ -35,7 +47,6 @@ class User(AbstractUser):
 
 class UserMeta(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='meta', verbose_name='用户')
-    department = models.CharField(max_length=255, blank=True, null=True, verbose_name='部门')
     post = models.CharField(max_length=255, blank=True, null=True, verbose_name='职位')
     qq = models.CharField(max_length=32, blank=True, null=True, verbose_name='QQ')
     wechat = models.CharField(max_length=255, blank=True, null=True, verbose_name='微信')

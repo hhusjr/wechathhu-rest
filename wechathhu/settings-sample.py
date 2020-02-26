@@ -185,6 +185,7 @@ SIMPLEUI_ANALYSIS = False
 SIMPLEUI_ICON = {
     '教师': 'fas fa-user-circle',
     '教师用户': 'fas fa-user',
+    '系所': 'fas fa-list',
     '服务指南': 'fas fa-handshake',
     '指南文件': 'fas fa-book',
     '指南分类': 'fas fa-list',

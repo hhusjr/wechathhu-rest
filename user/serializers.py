@@ -1,11 +1,21 @@
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.contrib.auth import password_validation
-from user.models import User, UserMeta, Contact
+from user.models import User, UserMeta, Contact, Department
 from rest_framework import mixins
 from pypinyin import lazy_pinyin, Style
 
+class DepartmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Department
+        fields = (
+            'id',
+            'name'
+        )
+
 class UserSerializer(serializers.ModelSerializer):
+    department = DepartmentSerializer(read_only=True)
+
     class Meta:
         model = User
         fields = (
@@ -17,7 +27,8 @@ class UserSerializer(serializers.ModelSerializer):
             'is_staff',
             'is_active',
             'date_joined',
-            'groups'
+            'groups',
+            'department'
         )
 
 class UserUpdateSerializer(serializers.ModelSerializer):
@@ -26,7 +37,8 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         fields = (
             'first_name',
             'last_name',
-            'email'
+            'email',
+            'department'
         )
 
 class UserChangePasswordSerializer(serializers.ModelSerializer):
@@ -57,7 +69,6 @@ class UserMetaSerializer(serializers.ModelSerializer):
         fields = (
             'user',
             'user_meta',
-            'department',
             'post',
             'qq',
             'wechat',
