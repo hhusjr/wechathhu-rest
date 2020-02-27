@@ -13,7 +13,7 @@
         padding: 20px;
     }
 
-    tbody a .fc-content {
+    .fc-event-container a .fc-content {
         color: #fff !important;
     }
 
@@ -78,6 +78,8 @@ function renderCalendar(meetingroom)
         defaultView: 'dayGridMonth',
         defaultDate: '2020-02-07',
         locale: 'cn',
+        navLinks: true,
+        defaultDate: new Date(),
         header: {
             left: 'prev,next today',
             center: 'title',
@@ -85,6 +87,7 @@ function renderCalendar(meetingroom)
         },
         selectable: meetingroom ? true : false,
         selectOverlap: false,
+        eventLimit: true,
         select: function(selectionInfo) {
             let reserveFrom = this.formatIso(selectionInfo.start)
             let reserveTo = this.formatIso(selectionInfo.end)
@@ -92,6 +95,7 @@ function renderCalendar(meetingroom)
             window.open('{% url cl.opts|admin_urlname:'add' %}?_popup=1&show_meetingroom=' + cur + '&show_reserve_from=' + encodeURIComponent(reserveFrom) + '&show_reserve_to=' + encodeURIComponent(reserveTo),
             'reservationadd', 'height=500,width=800,resizable=yes,scrollbars=yes')
         },
+        eventTextColor: '#fff',
         buttonText: {
             today:    '今天',
             month:    '月',
