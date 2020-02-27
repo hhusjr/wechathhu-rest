@@ -61,6 +61,14 @@ class WechatAuthView(views.APIView):
             raise WechatAuthParamError('Wechat JSCode field is required.')
         res = code2session(code)
 
+        # 重要：需要删除已经使用过的此OpenID
+        try:
+            user = User.objects.get(wechat_open_id=res['openid'])
+            user.wechat_open_id = None
+            user.save(update_fields=('wechat_open_id', ))
+        except User.DoesNotExist:
+            pass
+
         user = request.user
         user.wechat_open_id = res['openid']
         user.save(update_fields=['wechat_open_id'])
@@ -81,7 +89,7 @@ class WechatAuthView(views.APIView):
             pass
 
         user.wechat_open_id = None
-        user.save(update_fields=['wechat_open_id'])
+        user.save(update_fields=('wechat_open_id', ))
 
         serializer = UserSerializer(request.user, context={
             'request': request
