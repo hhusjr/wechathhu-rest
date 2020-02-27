@@ -63,7 +63,7 @@ class UserMeta(models.Model):
 
 class Contact(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contacts', verbose_name='用户')
-    friend_user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='同事')
+    friend_user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='好友')
 
     def __str__(self):
         return '{}-{}'.format(self.user.username, self.friend_user.username)
