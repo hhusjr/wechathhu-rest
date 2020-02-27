@@ -70,5 +70,5 @@ class Contact(models.Model):
     
     class Meta:
         unique_together = (('user', 'friend_user'), )
-        verbose_name = '通讯录人员关系'
-        verbose_name_plural = '通讯录人员关系'
+        verbose_name = '好友关系'
+        verbose_name_plural = '好友关系'
